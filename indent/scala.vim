@@ -1,223 +1,598 @@
-" Vim syntax file
-" Language:             Scala
-" Maintainer:           Derek Wyatt
-" URL:                  https://github.com/derekwyatt/vim-scala
-" License:              Apache 2
-" ----------------------------------------------------------------------------
+" Vim indent file
+" Language         : Scala (http://scala-lang.org/)
+" Original Author  : Stefan Matthias Aust
+" Modifications by : Derek Wyatt
+" Last Change: 2011 Mar 19 (Derek Wyatt)
 
-if !exists('main_syntax')
-  if version < 600
-    syntax clear
-  elseif exists("b:current_syntax")
-    finish
-  endif
-  let main_syntax = 'scala'
+if exists("b:did_indent")
+  finish
+endif
+let b:did_indent = 1
+
+setlocal autoindent
+setlocal indentexpr=GetScalaIndent()
+setlocal indentkeys=0{,0},0),!^F,<>>,o,O,e,=case,<CR>
+
+if exists("*GetScalaIndent")
+  finish
 endif
 
-scriptencoding utf-8
+let s:defMatcher = '\%(\%(private\|protected\)\%(\[[^\]]*\]\)\?\s\+\|abstract\s\+\|override\s\+\)*\<def\>'
+let s:funcNameMatcher = '\w\+'
+let s:typeSpecMatcher = '\%(\s*\[\_[^\]]*\]\)'
+let s:defArgMatcher = '\%((\_.\{-})\)'
+let s:returnTypeMatcher = '\%(:\s*\w\+' . s:typeSpecMatcher . '\?\)'
+let g:fullDefMatcher = '^\s*' . s:defMatcher . '\s\+' . s:funcNameMatcher . '\s*' . s:typeSpecMatcher . '\?\s*' . s:defArgMatcher . '\?\s*' . s:returnTypeMatcher . '\?\s*[={]'
 
-let b:current_syntax = "scala"
-
-" Allows for embedding, see #59; main_syntax convention instead? Refactor TOP
-"
-" The @Spell here is a weird hack, it means *exclude* if the first group is
-" TOP. Otherwise we get spelling errors highlighted on code elements that
-" match scalaBlock, even with `syn spell notoplevel`.
-function! s:ContainedGroup()
-  try
-    silent syn list @scala
-    return '@scala,@NoSpell'
-  catch /E392/
-    return 'TOP,@Spell'
-  endtry
+function! scala#ConditionalConfirm(msg)
+  if 0
+    call confirm(a:msg)
+  endif
 endfunction
 
-syn include @scalaHtml syntax/html.vim  " Doc comment HTML
-unlet! b:current_syntax
+function! scala#GetLine(lnum)
+  let line = substitute(getline(a:lnum), '//.*$', '', '')
+  let line = substitute(line, '"\(.\|\\"\)\{-}"', '""', 'g')
+  return line
+endfunction
 
-syn case match
-syn sync minlines=200 maxlines=1000
+function! scala#CountBrackets(line, openBracket, closedBracket)
+  let line = substitute(a:line, '"\(.\|\\"\)\{-}"', '', 'g')
+  let open = substitute(line, '[^' . a:openBracket . ']', '', 'g')
+  let close = substitute(line, '[^' . a:closedBracket . ']', '', 'g')
+  return strlen(open) - strlen(close)
+endfunction
 
-syn keyword scalaKeyword catch do else final finally for forSome if
-syn keyword scalaKeyword match return throw try while yield macro
-syn keyword scalaKeyword class trait object extends with nextgroup=scalaInstanceDeclaration skipwhite
-syn keyword scalaKeyword case nextgroup=scalaKeyword,scalaCaseFollowing skipwhite
-syn keyword scalaKeyword val nextgroup=scalaNameDefinition,scalaQuasiQuotes skipwhite
-syn keyword scalaKeyword def var nextgroup=scalaNameDefinition skipwhite
-hi link scalaKeyword Keyword
+function! scala#CountParens(line)
+  return scala#CountBrackets(a:line, '(', ')')
+endfunction
 
-exe 'syn region scalaBlock start=/{/ end=/}/ contains=' . s:ContainedGroup() . ' fold'
+function! scala#CountCurlies(line)
+  return scala#CountBrackets(a:line, '{', '}')
+endfunction
 
-syn keyword scalaAkkaSpecialWord when goto using startWith initialize onTransition stay become unbecome
-hi link scalaAkkaSpecialWord PreProc
+function! scala#LineEndsInIncomplete(line)
+  if a:line =~ '[.,]\s*$'
+    return 1
+  else
+    return 0
+  endif
+endfunction
 
-syn match scalaSymbol /'[_A-Za-z0-9$]\+/
-hi link scalaSymbol Number
+function! scala#LineIsAClosingXML(line)
+  if a:line =~ '^\s*</\w'
+    return 1
+  else
+    return 0
+  endif
+endfunction
 
-syn match scalaChar /'.'/
-syn match scalaChar /'\\[\\"'ntbrf]'/ contains=scalaEscapedChar
-syn match scalaChar /'\\u[A-Fa-f0-9]\{4}'/ contains=scalaUnicodeChar
-syn match scalaEscapedChar /\\[\\"'ntbrf]/
-syn match scalaUnicodeChar /\\u[A-Fa-f0-9]\{4}/
-hi link scalaChar Character
-hi link scalaEscapedChar Function
-hi link scalaUnicodeChar Special
+function! scala#LineCompletesXML(lnum, line)
+  let savedpos = getpos('.')
+  call setpos('.', [savedpos[0], a:lnum, 0, savedpos[3]])
+  let tag = substitute(a:line, '^.*</\([^>]*\)>.*$', '\1', '')
+  let [lineNum, colnum] = searchpairpos('<' . tag . '>', '', '</' . tag . '>', 'Wbn')
+  call setpos('.', savedpos)
+  let pline = scala#GetLine(prevnonblank(lineNum - 1))
+  if pline =~ '=\s*$'
+    return 1
+  else
+    return 0
+  endif
+endfunction
 
-syn match scalaOperator "||"
-syn match scalaOperator "&&"
-hi link scalaOperator Special
+function! scala#IsParentCase()
+  let savedpos = getpos('.')
+  call setpos('.', [savedpos[0], savedpos[1], 0, savedpos[3]])
+  let [l, c] = searchpos('^\s*\%(' . s:defMatcher . '\|\%(\<case\>\)\)', 'bnW')
+  let retvalue = -1
+  if l != 0 && search('\%' . l . 'l\s*\<case\>', 'bnW')
+    let retvalue = l
+  endif 
+  call setpos('.', savedpos)
+  return retvalue
+endfunction
 
-syn match scalaNameDefinition /\<[_A-Za-z0-9$]\+\>/ contained nextgroup=scalaPostNameDefinition
-syn match scalaNameDefinition /`[^`]\+`/ contained nextgroup=scalaPostNameDefinition
-syn match scalaPostNameDefinition /\_s*:\_s*/ contained nextgroup=scalaTypeDeclaration
-hi link scalaNameDefinition Function
+function! scala#CurlyMatcher()
+  let matchline = scala#GetLineThatMatchesBracket('{', '}')
+  if scala#CountParens(scala#GetLine(matchline)) < 0
+    let savedpos = getpos('.')
+    call setpos('.', [savedpos[0], matchline, 9999, savedpos[3]])
+    call searchpos('{', 'Wbc')
+    call searchpos(')', 'Wb')
+    let [lnum, colnum] = searchpairpos('(', '', ')', 'Wbn')
+    call setpos('.', savedpos)
+    let line = scala#GetLine(lnum)
+    if line =~ '^\s*' . s:defMatcher
+      return lnum
+    else
+      return matchline
+    endif
+  else
+    return matchline
+  endif
+endfunction
 
-syn match scalaInstanceDeclaration /\<[_\.A-Za-z0-9$]\+\>/ contained nextgroup=scalaInstanceHash
-syn match scalaInstanceDeclaration /`[^`]\+`/ contained
-syn match scalaInstanceHash /#/ contained nextgroup=scalaInstanceDeclaration
-hi link scalaInstanceDeclaration Special
-hi link scalaInstanceHash Type
+function! scala#GetLineAndColumnThatMatchesCurly()
+  return scala#GetLineAndColumnThatMatchesBracket('{', '}')
+endfunction
 
-syn match scalaUnimplemented /???/
-hi link scalaUnimplemented ERROR
+function! scala#GetLineAndColumnThatMatchesParen()
+  return scala#GetLineAndColumnThatMatchesBracket('(', ')')
+endfunction
 
-syn match scalaCapitalWord /\<[A-Z][A-Za-z0-9$]*\>/
-hi link scalaCapitalWord Special
+function! scala#GetLineAndColumnThatMatchesBracket(openBracket, closedBracket)
+  let savedpos = getpos('.')
+  let curline = scala#GetLine(line('.'))
+  if curline =~ a:closedBracket . '.*' . a:openBracket . '.*' . a:closedBracket
+    call setpos('.', [savedpos[0], savedpos[1], 0, savedpos[3]])
+    call searchpos(a:closedBracket . '\ze[^' . a:closedBracket . a:openBracket . ']*' . a:openBracket, 'W')
+  else
+    call setpos('.', [savedpos[0], savedpos[1], 9999, savedpos[3]])
+    call searchpos(a:closedBracket, 'Wbc')
+  endif
+  let [lnum, colnum] = searchpairpos(a:openBracket, '', a:closedBracket, 'Wbn')
+  call setpos('.', savedpos)
+  return [lnum, colnum]
+endfunction
 
-" Handle type declarations specially
-syn region scalaTypeStatement matchgroup=Keyword start=/\<type\_s\+\ze/ end=/$/ contains=scalaTypeTypeDeclaration,scalaSquareBrackets,scalaTypeTypeEquals,scalaTypeStatement
+function! scala#GetLineThatMatchesCurly()
+  return scala#GetLineThatMatchesBracket('{', '}')
+endfunction
 
-" Ugh... duplication of all the scalaType* stuff to handle special highlighting
-" of `type X =` declarations
-syn match scalaTypeTypeDeclaration /(/ contained nextgroup=scalaTypeTypeExtension,scalaTypeTypeEquals contains=scalaRoundBrackets skipwhite
-syn match scalaTypeTypeDeclaration /\%(⇒\|=>\)\ze/ contained nextgroup=scalaTypeTypeDeclaration contains=scalaTypeTypeExtension skipwhite
-syn match scalaTypeTypeDeclaration /\<[_\.A-Za-z0-9$]\+\>/ contained nextgroup=scalaTypeTypeExtension,scalaTypeTypeEquals skipwhite
-syn match scalaTypeTypeEquals /=\ze[^>]/ contained nextgroup=scalaTypeTypePostDeclaration skipwhite
-syn match scalaTypeTypeExtension /)\?\_s*\zs\%(⇒\|=>\|<:\|:>\|=:=\|::\|#\)/ contained nextgroup=scalaTypeTypeDeclaration skipwhite
-syn match scalaTypeTypePostDeclaration /\<[_\.A-Za-z0-9$]\+\>/ contained nextgroup=scalaTypeTypePostExtension skipwhite
-syn match scalaTypeTypePostExtension /\%(⇒\|=>\|<:\|:>\|=:=\|::\)/ contained nextgroup=scalaTypeTypePostDeclaration skipwhite
-hi link scalaTypeTypeDeclaration Type
-hi link scalaTypeTypeExtension Keyword
-hi link scalaTypeTypePostDeclaration Special
-hi link scalaTypeTypePostExtension Keyword
+function! scala#GetLineThatMatchesParen()
+  return scala#GetLineThatMatchesBracket('(', ')')
+endfunction
 
-syn match scalaTypeDeclaration /(/ contained nextgroup=scalaTypeExtension contains=scalaRoundBrackets skipwhite
-syn match scalaTypeDeclaration /\%(⇒\|=>\)\ze/ contained nextgroup=scalaTypeDeclaration contains=scalaTypeExtension skipwhite
-syn match scalaTypeDeclaration /\<[_\.A-Za-z0-9$]\+\>/ contained nextgroup=scalaTypeExtension skipwhite
-syn match scalaTypeExtension /)\?\_s*\zs\%(⇒\|=>\|<:\|:>\|=:=\|::\|#\)/ contained nextgroup=scalaTypeDeclaration skipwhite
-hi link scalaTypeDeclaration Type
-hi link scalaTypeExtension Keyword
-hi link scalaTypePostExtension Keyword
+function! scala#GetLineThatMatchesBracket(openBracket, closedBracket)
+  let [lnum, colnum] = scala#GetLineAndColumnThatMatchesBracket(a:openBracket, a:closedBracket)
+  return lnum
+endfunction
 
-syn match scalaTypeAnnotation /\%([_a-zA-Z0-9$\s]:\_s*\)\ze[_=(\.A-Za-z0-9$]\+/ skipwhite nextgroup=scalaTypeDeclaration contains=scalaRoundBrackets
-syn match scalaTypeAnnotation /)\_s*:\_s*\ze[_=(\.A-Za-z0-9$]\+/ skipwhite nextgroup=scalaTypeDeclaration
-hi link scalaTypeAnnotation Normal
+function! scala#NumberOfBraceGroups(line)
+  let line = substitute(a:line, '[^()]', '', 'g')
+  if strlen(line) == 0
+    return 0
+  endif
+  let line = substitute(line, '^)*', '', 'g')
+  if strlen(line) == 0
+    return 0
+  endif
+  let line = substitute(line, '^(', '', 'g')
+  if strlen(line) == 0
+    return 0
+  endif
+  let c = 1
+  let counter = 0
+  let groupCount = 0
+  while counter < strlen(line)
+    let char = strpart(line, counter, 1)
+    if char == '('
+      let c = c + 1
+    elseif char == ')'
+      let c = c - 1
+    endif
+    if c == 0
+      let groupCount = groupCount + 1
+    endif
+    let counter = counter + 1
+  endwhile
+  return groupCount
+endfunction
 
-syn match scalaCaseFollowing /\<[_\.A-Za-z0-9$]\+\>/ contained
-syn match scalaCaseFollowing /`[^`]\+`/ contained
-hi link scalaCaseFollowing Special
+function! scala#MatchesIncompleteDefValr(line)
+  if a:line =~ '^\s*\%(' . s:defMatcher . '\|\<va[lr]\>\).*[=({]\s*$'
+    return 1
+  else
+    return 0
+  endif
+endfunction
 
-syn keyword scalaKeywordModifier abstract override final lazy implicit implicitly private protected sealed null require super
-hi link scalaKeywordModifier Function
+function! scala#LineIsCompleteIf(line)
+  if scala#CountBrackets(a:line, '{', '}') == 0 &&
+   \ scala#CountBrackets(a:line, '(', ')') == 0 &&
+   \ a:line =~ '^\s*\<if\>\s*([^)]*)\s*\S.*$'
+    return 1
+  else
+    return 0
+  endif
+endfunction
 
-syn keyword scalaSpecial this true false ne eq
-syn keyword scalaSpecial new nextgroup=scalaInstanceDeclaration skipwhite
-syn match scalaSpecial "\%(=>\|⇒\|<-\|←\|->\|→\)"
-syn match scalaSpecial /`[^`]*`/  " Backtick literals
-hi link scalaSpecial PreProc
+function! scala#LineCompletesIfElse(lnum, line)
+  if a:line =~ '^\s*\%(\<if\>\|\%(}\s*\)\?\<else\>\)'
+    return 0
+  endif
+  let result = search('^\%(\s*\<if\>\s*(.*).*\n\|\s*\<if\>\s*(.*)\s*\n.*\n\)\%(\s*\<else\>\s*\<if\>\s*(.*)\s*\n.*\n\)*\%(\s*\<else\>\s*\n\|\s*\<else\>[^{]*\n\)\?\%' . a:lnum . 'l', 'Wbn')
+  if result != 0 && scala#GetLine(prevnonblank(a:lnum - 1)) !~ '{\s*$'
+    return result
+  endif
+  return 0
+endfunction
 
-syn keyword scalaExternal package import
-hi link scalaExternal Include
+function! scala#GetPrevCodeLine(lnum)
+  " This needs to skip comment lines
+  return prevnonblank(a:lnum - 1)
+endfunction
 
-syn match scalaStringEmbeddedQuote /\\"/ contained
-syn region scalaString start=/"/ end=/"/ contains=scalaStringEmbeddedQuote,scalaEscapedChar,scalaUnicodeChar
-hi link scalaString String
-hi link scalaStringEmbeddedQuote String
+function! scala#InvertBracketType(openBracket, closedBracket)
+  if a:openBracket == '('
+    return [ '{', '}' ]
+  else
+    return [ '(', ')' ]
+  endif
+endfunction
 
-syn region scalaIString matchgroup=scalaInterpolationBrackets start=/\<[a-zA-Z][a-zA-Z0-9_]*"/ skip=/\\"/ end=/"/ contains=scalaInterpolation,scalaInterpolationB,scalaEscapedChar,scalaUnicodeChar
-syn region scalaTripleIString matchgroup=scalaInterpolationBrackets start=/\<[a-zA-Z][a-zA-Z0-9_]*"""/ end=/"""\%([^"]\|$\)/ contains=scalaInterpolation,scalaInterpolationB,scalaEscapedChar,scalaUnicodeChar
-hi link scalaIString String
-hi link scalaTripleIString String
+function! scala#Testhelper(lnum, line, openBracket, closedBracket, iteration)
+  let bracketCount = scala#CountBrackets(a:line, a:openBracket, a:closedBracket)
+  " There are more '}' braces than '{' on this line so it may be completing the function definition
+  if bracketCount < 0
+    let [matchedLNum, matchedColNum] = scala#GetLineAndColumnThatMatchesBracket(a:openBracket, a:closedBracket)
+    if matchedLNum == a:lnum
+      return -1
+    endif
+    let matchedLine = scala#GetLine(matchedLNum)
+    if ! scala#MatchesIncompleteDefValr(matchedLine)
+      let bracketLine = substitute(substitute(matchedLine, '\%' . matchedColNum . 'c.*$', '', ''), '[^{}()]', '', 'g')
+      if bracketLine =~ '}$'
+        return scala#Testhelper(matchedLNum, matchedLine, '{', '}', a:iteration + 1)
+      elseif bracketLine =~ ')$'
+        return scala#Testhelper(matchedLNum, matchedLine, '(', ')', a:iteration + 1)
+      else
+        let prevCodeLNum = scala#GetPrevCodeLine(matchedLNum)
+        if scala#MatchesIncompleteDefValr(scala#GetLine(prevCodeLNum))
+          return prevCodeLNum
+        else
+          return -1
+        endif
+      endif
+    else
+      " return indent value instead
+      return matchedLNum
+    endif
+  " There's an equal number of '{' and '}' on this line so it may be a single line function definition
+  elseif bracketCount == 0
+    if a:iteration == 0
+      let otherBracketType = scala#InvertBracketType(a:openBracket, a:closedBracket)
+      return scala#Testhelper(a:lnum, a:line, otherBracketType[0], otherBracketType[1], a:iteration + 1)
+    else
+      let prevCodeLNum = scala#GetPrevCodeLine(a:lnum)
+      let prevCodeLine = scala#GetLine(prevCodeLNum)
+      if scala#MatchesIncompleteDefValr(prevCodeLine) && prevCodeLine !~ '{\s*$'
+        return prevCodeLNum
+      else
+        let possibleIfElse = scala#LineCompletesIfElse(a:lnum, a:line)
+        if possibleIfElse != 0
+          let defValrLine = prevnonblank(possibleIfElse - 1)
+          let possibleDefValr = scala#GetLine(defValrLine)
+          if scala#MatchesIncompleteDefValr(possibleDefValr) && possibleDefValr =~ '^.*=\s*$'
+            return possibleDefValr
+          else
+            return -1
+          endif
+        else
+          return -1
+        endif
+      endif
+    endif
+  else
+    return -1
+  endif
+endfunction
 
-syn match scalaInterpolation /\$[a-zA-Z0-9_$]\+/ contained
-exe 'syn region scalaInterpolationB matchgroup=scalaInterpolationBoundary start=/\${/ end=/}/ contained contains=' . s:ContainedGroup()
-hi link scalaInterpolation Function
-hi link scalaInterpolationB Normal
+function! scala#Test(lnum, line, openBracket, closedBracket)
+  return scala#Testhelper(a:lnum, a:line, a:openBracket, a:closedBracket, 0)
+endfunction
 
-syn region scalaFString matchgroup=scalaInterpolationBrackets start=/f"/ skip=/\\"/ end=/"/ contains=scalaFInterpolation,scalaFInterpolationB,scalaEscapedChar,scalaUnicodeChar
-syn match scalaFInterpolation /\$[a-zA-Z0-9_$]\+\(%[-A-Za-z0-9\.]\+\)\?/ contained
-exe 'syn region scalaFInterpolationB matchgroup=scalaInterpolationBoundary start=/${/ end=/}\(%[-A-Za-z0-9\.]\+\)\?/ contained contains=' . s:ContainedGroup()
-hi link scalaFString String
-hi link scalaFInterpolation Function
-hi link scalaFInterpolationB Normal
+function! scala#LineCompletesDefValr(lnum, line)
+  let bracketCount = scala#CountBrackets(a:line, '{', '}')
+  if bracketCount < 0
+    let matchedBracket = scala#GetLineThatMatchesBracket('{', '}')
+    if ! scala#MatchesIncompleteDefValr(scala#GetLine(matchedBracket))
+      let possibleDefValr = scala#GetLine(prevnonblank(matchedBracket - 1))
+      if matchedBracket != -1 && scala#MatchesIncompleteDefValr(possibleDefValr)
+        return 1
+      else
+        return 0
+      endif
+    else
+      return 0
+    endif
+  elseif bracketCount == 0
+    let bracketCount = scala#CountBrackets(a:line, '(', ')')
+    if bracketCount < 0
+      let matchedBracket = scala#GetLineThatMatchesBracket('(', ')')
+      if ! scala#MatchesIncompleteDefValr(scala#GetLine(matchedBracket))
+        let possibleDefValr = scala#GetLine(prevnonblank(matchedBracket - 1))
+        if matchedBracket != -1 && scala#MatchesIncompleteDefValr(possibleDefValr)
+          return 1
+        else
+          return 0
+        endif
+      else
+        return 0
+      endif
+    elseif bracketCount == 0
+      let possibleDefValr = scala#GetLine(prevnonblank(a:lnum - 1))
+      if scala#MatchesIncompleteDefValr(possibleDefValr) && possibleDefValr =~ '^.*=\s*$'
+        return 1
+      else
+        let possibleIfElse = scala#LineCompletesIfElse(a:lnum, a:line)
+        if possibleIfElse != 0
+          let possibleDefValr = scala#GetLine(prevnonblank(possibleIfElse - 1))
+          if scala#MatchesIncompleteDefValr(possibleDefValr) && possibleDefValr =~ '^.*=\s*$'
+            return 2
+          else
+            return 0
+          endif
+        else
+          return 0
+        endif
+      endif
+    else
+      return 0
+    endif
+  endif
+endfunction
 
-syn region scalaTripleString start=/"""/ end=/"""\%([^"]\|$\)/ contains=scalaEscapedChar,scalaUnicodeChar
-syn region scalaTripleFString matchgroup=scalaInterpolationBrackets start=/f"""/ end=/"""\%([^"]\|$\)/ contains=scalaFInterpolation,scalaFInterpolationB,scalaEscapedChar,scalaUnicodeChar
-hi link scalaTripleString String
-hi link scalaTripleFString String
+function! scala#SpecificLineCompletesBrackets(lnum, openBracket, closedBracket)
+  let savedpos = getpos('.')
+  call setpos('.', [savedpos[0], a:lnum, 9999, savedpos[3]])
+  let retv = scala#LineCompletesBrackets(a:openBracket, a:closedBracket)
+  call setpos('.', savedpos)
 
-hi link scalaInterpolationBrackets Special
-hi link scalaInterpolationBoundary Function
+  return retv
+endfunction
 
-syn match scalaNumber /\<0[dDfFlL]\?\>/ " Just a bare 0
-syn match scalaNumber /\<[1-9]\d*[dDfFlL]\?\>/  " A multi-digit number - octal numbers with leading 0's are deprecated in Scala
-syn match scalaNumber /\<0[xX][0-9a-fA-F]\+[dDfFlL]\?\>/ " Hex number
-syn match scalaNumber /\%(\<\d\+\.\d*\|\.\d\+\)\%([eE][-+]\=\d\+\)\=[fFdD]\=/ " exponential notation 1
-syn match scalaNumber /\<\d\+[eE][-+]\=\d\+[fFdD]\=\>/ " exponential notation 2
-syn match scalaNumber /\<\d\+\%([eE][-+]\=\d\+\)\=[fFdD]\>/ " exponential notation 3
-hi link scalaNumber Number
+function! scala#LineCompletesBrackets(openBracket, closedBracket)
+  let savedpos = getpos('.')
+  let offline = 0
+  while offline == 0
+    let [lnum, colnum] = searchpos(a:closedBracket, 'Wb')
+    let [lnumA, colnumA] = searchpairpos(a:openBracket, '', a:closedBracket, 'Wbn')
+    if lnum != lnumA
+      let [lnumB, colnumB] = searchpairpos(a:openBracket, '', a:closedBracket, 'Wbnr')
+      let offline = 1
+    endif
+  endwhile
+  call setpos('.', savedpos)
+  if lnumA == lnumB && colnumA == colnumB
+    return lnumA
+  else
+    return -1
+  endif
+endfunction
 
-syn region scalaRoundBrackets start="(" end=")" skipwhite contained contains=scalaTypeDeclaration,scalaSquareBrackets,scalaRoundBrackets
+function! GetScalaIndent()
+  " Find a non-blank line above the current line.
+  let prevlnum = prevnonblank(v:lnum - 1)
 
-syn region scalaSquareBrackets matchgroup=scalaSquareBracketsBrackets start="\[" end="\]" skipwhite nextgroup=scalaTypeExtension contains=scalaTypeDeclaration,scalaSquareBrackets,scalaTypeOperator,scalaTypeAnnotationParameter
-syn match scalaTypeOperator /[-+=:<>]\+/ contained
-syn match scalaTypeAnnotationParameter /@\<[`_A-Za-z0-9$]\+\>/ contained
-hi link scalaSquareBracketsBrackets Type
-hi link scalaTypeOperator Keyword
-hi link scalaTypeAnnotationParameter Function
+  " Hit the start of the file, use zero indent.
+  if prevlnum == 0
+    return 0
+  endif
 
-syn match scalaShebang "\%^#!.*" display
-syn region scalaMultilineComment start="/\*" end="\*/" contains=scalaMultilineComment,scalaDocLinks,scalaParameterAnnotation,scalaCommentAnnotation,scalaTodo,scalaCommentCodeBlock,@scalaHtml,@Spell keepend
-syn match scalaCommentAnnotation "@[_A-Za-z0-9$]\+" contained
-syn match scalaParameterAnnotation "@param" nextgroup=scalaParamAnnotationValue skipwhite contained
-syn match scalaParamAnnotationValue /[`_A-Za-z0-9$]\+/ contained
-syn region scalaDocLinks start="\[\[" end="\]\]" contained
-syn region scalaCommentCodeBlock matchgroup=Keyword start="{{{" end="}}}" contained
-syn match scalaTodo "\vTODO|FIXME|XXX" contained
-hi link scalaShebang Comment
-hi link scalaMultilineComment Comment
-hi link scalaDocLinks Function
-hi link scalaParameterAnnotation Function
-hi link scalaParamAnnotationValue Keyword
-hi link scalaCommentAnnotation Function
-hi link scalaCommentCodeBlockBrackets String
-hi link scalaCommentCodeBlock String
-hi link scalaTodo Todo
+  let ind = indent(prevlnum)
+  let originalIndentValue = ind
+  let prevline = scala#GetLine(prevlnum)
+  let curlnum = v:lnum
+  let curline = scala#GetLine(curlnum)
 
-syn match scalaAnnotation /@\<[`_A-Za-z0-9$]\+\>/
-hi link scalaAnnotation PreProc
+  if prevline =~ '^\s*/\*\*'
+    if prevline =~ '\*/\s*$'
+      return ind
+    else
+      return ind + 1
+    endif
+  endif
 
-syn match scalaTrailingComment "//.*$" contains=scalaTodo,@Spell
-hi link scalaTrailingComment Comment
+  if curline =~ '^\s*\*'
+    return cindent(curlnum)
+  endif
 
-syn match scalaAkkaFSM /goto([^)]*)\_s\+\<using\>/ contains=scalaAkkaFSMGotoUsing
-syn match scalaAkkaFSM /stay\_s\+using/
-syn match scalaAkkaFSM /^\s*stay\s*$/
-syn match scalaAkkaFSM /when\ze([^)]*)/
-syn match scalaAkkaFSM /startWith\ze([^)]*)/
-syn match scalaAkkaFSM /initialize\ze()/
-syn match scalaAkkaFSM /onTransition/
-syn match scalaAkkaFSM /onTermination/
-syn match scalaAkkaFSM /whenUnhandled/
-syn match scalaAkkaFSMGotoUsing /\<using\>/
-syn match scalaAkkaFSMGotoUsing /\<goto\>/
-hi link scalaAkkaFSM PreProc
-hi link scalaAkkaFSMGotoUsing PreProc
+  " If this line starts with a { then make it indent the same as the previous line
+  if curline =~ '^\s*{'
+    call scala#ConditionalConfirm("1")
+    " Unless, of course, the previous one is a { as well
+    if prevline !~ '^\s*{'
+      call scala#ConditionalConfirm("2")
+      return indent(prevlnum)
+    endif
+  endif
 
-let b:current_syntax = 'scala'
+  " '.' continuations
+  if curline =~ '^\s*\.'
+    if prevline =~ '^\s*\.'
+      return ind
+    else
+      return ind + &shiftwidth
+    endif
+  endif
 
-if main_syntax ==# 'scala'
-  unlet main_syntax
-endif
+  " Indent html literals
+  if prevline !~ '/>\s*$' && prevline =~ '^\s*<[a-zA-Z][^>]*>\s*$'
+    call scala#ConditionalConfirm("3")
+    return ind + &shiftwidth
+  endif
+
+  " assumes curly braces around try-block
+  if curline =~ '^\s*}\s*\<catch\>'
+    return ind - &shiftwidth
+  elseif curline =~ '^\s*\<catch\>'
+    return ind
+  endif
+
+  " Add a 'shiftwidth' after lines that start a block
+  " If 'if', 'for' or 'while' end with ), this is a one-line block
+  " If 'val', 'var', 'def' end with =, this is a one-line block
+  if (prevline =~ '^\s*\<\%(\%(}\?\s*else\s\+\)\?if\|for\|while\)\>.*[)=]\s*$' && scala#NumberOfBraceGroups(prevline) <= 1)
+        \ || prevline =~ '^\s*' . s:defMatcher . '.*=\s*$'
+        \ || prevline =~ '^\s*\<va[lr]\>.*[=]\s*$'
+        \ || prevline =~ '^\s*\%(}\s*\)\?\<else\>\s*$'
+        \ || prevline =~ '=\s*$'
+    call scala#ConditionalConfirm("4")
+    let ind = ind + &shiftwidth
+  elseif prevline =~ '^\s*\<\%(}\?\s*else\s\+\)\?if\>' && curline =~ '^\s*}\?\s*\<else\>'
+    return ind
+  endif
+
+  let lineCompletedBrackets = 0
+  let bracketCount = scala#CountBrackets(prevline, '{', '}')
+  if bracketCount > 0 || prevline =~ '.*{\s*$'
+    call scala#ConditionalConfirm("5b")
+    let ind = ind + &shiftwidth
+  elseif bracketCount < 0
+    call scala#ConditionalConfirm("6b")
+    " if the closing brace actually completes the braces entirely, then we
+    " have to indent to line that started the whole thing
+    let completeLine = scala#LineCompletesBrackets('{', '}')
+    if completeLine != -1
+      call scala#ConditionalConfirm("8b")
+      let prevCompleteLine = scala#GetLine(prevnonblank(completeLine - 1))
+      " However, what actually started this part looks like it was a function
+      " definition, so we need to indent to that line instead.  This is 
+      " actually pretty weak at the moment.
+      if prevCompleteLine =~ '=\s*$'
+        call scala#ConditionalConfirm("9b")
+        let ind = indent(prevnonblank(completeLine - 1))
+      else
+        call scala#ConditionalConfirm("10b")
+        let ind = indent(completeLine)
+      endif
+    else
+      let lineCompletedBrackets = 1
+    endif
+  endif
+
+  if ind == originalIndentValue
+    let bracketCount = scala#CountBrackets(prevline, '(', ')')
+    if bracketCount > 0 || prevline =~ '.*(\s*$'
+      call scala#ConditionalConfirm("5a")
+      let ind = ind + &shiftwidth
+    elseif bracketCount < 0
+      call scala#ConditionalConfirm("6a")
+      " if the closing brace actually completes the braces entirely, then we
+      " have to indent to line that started the whole thing
+      let completeLine = scala#LineCompletesBrackets('(', ')')
+      if completeLine != -1 && prevline !~ '^.*{\s*$'
+        call scala#ConditionalConfirm("8a")
+        let prevCompleteLine = scala#GetLine(prevnonblank(completeLine - 1))
+        " However, what actually started this part looks like it was a function
+        " definition, so we need to indent to that line instead.  This is 
+        " actually pretty weak at the moment.
+        if prevCompleteLine =~ '=\s*$'
+          call scala#ConditionalConfirm("9a")
+          let ind = indent(prevnonblank(completeLine - 1))
+        else
+          call scala#ConditionalConfirm("10a")
+          let ind = indent(completeLine)
+        endif
+      else
+        " This is the only part that's different from from the '{', '}' one below
+        " Yup... some refactoring is necessary at some point.
+        let ind = ind + (bracketCount * &shiftwidth)
+        let lineCompletedBrackets = 1
+      endif
+    endif
+  endif
+
+  if curline =~ '^\s*}\?\s*\<else\>\%(\s\+\<if\>\s*(.*)\)\?\s*{\?\s*$' &&
+   \ ! scala#LineIsCompleteIf(prevline) &&
+   \ prevline !~ '^.*}\s*$'
+    let ind = ind - &shiftwidth
+  endif
+
+  " Subtract a 'shiftwidth' on '}' or html
+  let curCurlyCount = scala#CountCurlies(curline)
+  if curCurlyCount < 0
+    call scala#ConditionalConfirm("14a")
+    let matchline = scala#CurlyMatcher()
+    return indent(matchline)
+  elseif curline =~ '^\s*</[a-zA-Z][^>]*>'
+    call scala#ConditionalConfirm("14c")
+    return ind - &shiftwidth
+  endif
+
+  let prevParenCount = scala#CountParens(prevline)
+  if prevline =~ '^\s*\<for\>.*$' && prevParenCount > 0
+    call scala#ConditionalConfirm("15")
+    let ind = indent(prevlnum) + 5
+  endif
+
+  let prevCurlyCount = scala#CountCurlies(prevline)
+  if prevCurlyCount == 0 && prevline =~ '^.*\%(=>\|⇒\)\s*$' && prevline !~ '^\s*this\s*:.*\%(=>\|⇒\)\s*$' && curline !~ '^\s*\<case\>'
+    call scala#ConditionalConfirm("16")
+    let ind = ind + &shiftwidth
+  endif
+
+  if ind == originalIndentValue && curline =~ '^\s*\<case\>'
+    call scala#ConditionalConfirm("17")
+    let parentCase = scala#IsParentCase()
+    if parentCase != -1
+      call scala#ConditionalConfirm("17a")
+      return indent(parentCase)
+    endif
+  endif
+
+  if prevline =~ '^\s*\*/'
+   \ || prevline =~ '*/\s*$'
+    call scala#ConditionalConfirm("18")
+    let ind = ind - 1
+  endif
+
+  if scala#LineEndsInIncomplete(prevline)
+    call scala#ConditionalConfirm("19")
+    return ind
+  endif
+
+  if scala#LineIsAClosingXML(prevline)
+    if scala#LineCompletesXML(prevlnum, prevline)
+      call scala#ConditionalConfirm("20a")
+      return ind - &shiftwidth
+    else
+      call scala#ConditionalConfirm("20b")
+      return ind
+    endif
+  endif
+
+  if ind == originalIndentValue
+    "let indentMultiplier = scala#LineCompletesDefValr(prevlnum, prevline)
+    "if indentMultiplier != 0
+    "  call scala#ConditionalConfirm("19a")
+    "  let ind = ind - (indentMultiplier * &shiftwidth)
+    let defValrLine = scala#Test(prevlnum, prevline, '{', '}')
+    if defValrLine != -1
+      call scala#ConditionalConfirm("21a")
+      let ind = indent(defValrLine)
+    elseif lineCompletedBrackets == 0
+      call scala#ConditionalConfirm("21b")
+      if scala#GetLine(prevnonblank(prevlnum - 1)) =~ '^.*\<else\>\s*\%(//.*\)\?$'
+        call scala#ConditionalConfirm("21c")
+        let ind = ind - &shiftwidth
+      elseif scala#LineCompletesIfElse(prevlnum, prevline)
+        call scala#ConditionalConfirm("21d")
+        let ind = ind - &shiftwidth
+      elseif scala#CountParens(curline) < 0 && curline =~ '^\s*)' && scala#GetLine(scala#GetLineThatMatchesBracket('(', ')')) =~ '.*(\s*$'
+        " Handles situations that look like this:
+        " 
+        "   val a = func(
+        "     10
+        "   )
+        "
+        " or
+        "
+        "   val a = func(
+        "     10
+        "   ).somethingHere()
+        call scala#ConditionalConfirm("21e")
+        let ind = ind - &shiftwidth
+      endif
+    endif
+  endif
+
+  call scala#ConditionalConfirm("returning " . ind)
+
+  return ind
+endfunction
 
 " vim:set sw=2 sts=2 ts=8 et:
+" vim600:fdm=marker fdl=1 fdc=0:
