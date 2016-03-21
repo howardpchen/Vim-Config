@@ -3,7 +3,7 @@ filetype indent on
 
 
 set fileformats=unix,mac,dos
-
+set directory=.,$TEMP
 set encoding=utf-8
 set background=dark  " will be overwritten by gvimrc
 set t_Co=256
