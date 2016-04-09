@@ -29,6 +29,7 @@ set mouse=a
 set expandtab
 set tw=0  " Set to 0 for softwrap, and for hardwrap set to 72 because standard editor width is 80 and I like having line numbers on the left side, so this way gqip command will not create strange soft wrap on top of hard wrap.
 
+
 """""""""""""""""""""""""""""""
 " Syntastic Setups
 """""""""""""""""""""""""""""""
@@ -66,11 +67,17 @@ vmap j gj
 vmap k gk
 
 nmap <C-M-O>      :MRU<CR>
-nmap <C-O>    :NERDTree<CR>
-nmap <Leader>s :source $MYVIMRC<CR>
-nmap <Leader>v :e $MYVIMRC<CR>
+nmap <C-O>        :NERDTree<CR>
+nmap <Leader>s    :source $MYVIMRC<CR>
+nmap <Leader>v    :e $MYVIMRC<CR>
 nmap <SPACE> zz
 nnoremap <Leader>q <C-V>
+
+""""""""""""""""""""""""""""""
+"Hotkey for languages
+""""""""""""""""""""""""""""""
+nmap <Leader>S    :set filetype=scala<CR>
+
 
 vmap <C-C> "+y
 vmap <C-V> "+p

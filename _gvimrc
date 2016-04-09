@@ -1,6 +1,7 @@
 set nocompatible
 set ch=1
 set columns=80
+set tw=75
 set lines=26
 
 set guioptions-=m  "remove menubar
@@ -18,6 +19,7 @@ if has("gui_running")
         map <C-CR> <Esc>:call libcallnr("gvimfullscreen.dll", "ToggleFullScreen", 0)<CR>
     endif
 endif
+
 
 set background=dark
 "colorscheme wombat256
