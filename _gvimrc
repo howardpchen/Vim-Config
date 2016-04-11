@@ -1,7 +1,6 @@
 set nocompatible
 set ch=1
-set columns=80
-set tw=75
+set columns=85
 set lines=26
 
 set guioptions-=m  "remove menubar

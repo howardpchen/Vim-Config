@@ -77,7 +77,7 @@ nnoremap <Leader>q <C-V>
 "Hotkey for languages
 """"""""""""""""""""""""""""""
 nmap <Leader>S    :set filetype=scala<CR>
-
+nmap <Leader>a    :set filetype=lua<CR>
 
 vmap <C-C> "+y
 vmap <C-V> "+p
