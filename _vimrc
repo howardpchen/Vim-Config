@@ -1,5 +1,8 @@
 filetype plugin on
 filetype indent on
+autocmd FileType python set sw=4
+autocmd FileType python set ts=4
+autocmd FileType python set sts=4
 
 
 set fileformats=unix,mac,dos
@@ -28,6 +31,17 @@ autocmd GUIEnter * set visualbell t_vb=
 set mouse=a
 set expandtab
 set tw=0  " Set to 0 for softwrap, and for hardwrap set to 72 because standard editor width is 80 and I like having line numbers on the left side, so this way gqip command will not create strange soft wrap on top of hard wrap.
+
+"""""""""""""""""""""""""""""""
+" YouCompleteMe Settings
+"""""""""""""""""""""""""""""""
+
+let g:ycm_collect_identifiers_from_tags_files = 1 " Let YCM read tags from Ctags file
+let g:ycm_use_ultisnips_completer = 1 " Default 1, just ensure
+let g:ycm_seed_identifiers_with_syntax = 1 " Completion for programming language's keyword
+let g:ycm_complete_in_comments = 1 " Completion in comments
+let g:ycm_complete_in_strings = 1 " Completion in string
+
 
 
 """""""""""""""""""""""""""""""
@@ -69,7 +83,7 @@ vmap k gk
 nmap <C-M-O>      :MRU<CR>
 nmap <C-O>        :NERDTree<CR>
 nmap <Leader>s    :source $MYVIMRC<CR>
-nmap <Leader>v    :e $MYVIMRC<CR>
+nmap <Leader>v    :e! $MYVIMRC<CR>
 nmap <SPACE> zz
 nnoremap <Leader>q <C-V>
 
