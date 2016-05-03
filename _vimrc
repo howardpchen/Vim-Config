@@ -92,35 +92,6 @@ vmap <C-V> "+p
 vmap <C-M-V> S]%a(<ESC>"+pa)<ESC>
 
 let g:NERDTreeDirArrows=1
-"autocmd StdinReadPre * let s:std_in=1
-"autocmd VimEnter * if argc() == 0 && !exists("s:std_in") | NERDTree | endif
-
-"====Instantly Better Vim Plugin ====
-
-"let g:DVB_TrimWS = 1
-"vmap  <expr>  <LEFT>   DVB_Drag('left')  
-"vmap  <expr>  <RIGHT>  DVB_Drag('right')
-"vmap  <expr>  <DOWN>   DVB_Drag('down')
-"vmap  <expr>  <UP>     DVB_Drag('up')  
-"vmap  <expr>  D        DVB_Duplicate() 
-
-"======== Shortcuts for Vim-Blog ========
-
-"nnoremap <C-M-S> :BlogSave draft<CR>
-"inoremap <C-M-S> <ESC>:BlogSave draft<CR>a
-"nnoremap <C-M-P> :BlogPreview draft<CR>
-"inoremap <C-M-P> <ESC>:BlogPreview draft<CR>a
-
-" =======Set up for Pencil and prose stuff======
-"Set to text filetype if not otherwise specified
-
-"autocmd BufEnter * if &filetype == "" | setlocal ft=markdown | endif
-"let g:pencil#wrapModeDefault = 'soft' " default is 'hard'
-"augroup pencil
-"  autocmd!
-"  autocmd FileType text,markdown,mkd call pencil#init()
-"                            \ | call textobj#sentence#init()
-"augroup END
 
 " ==============================================
 " 
