@@ -89,9 +89,11 @@ nnoremap <Leader>q <C-V>
 nmap <Leader>S    :set filetype=scala<CR>
 nmap <Leader>a    :set filetype=lua<CR>
 
+nmap <C-A> ggVG
+nmap <C-C> "+y
 vmap <C-C> "+y
+nmap <C-V> "+p
 vmap <C-V> "+p
-vmap <C-M-V> S]%a(<ESC>"+pa)<ESC>
 
 let g:NERDTreeDirArrows=1
 
