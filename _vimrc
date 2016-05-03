@@ -13,7 +13,6 @@ set t_Co=256
 
 "set regexpengine=1
 syntax enable
-
 set nocompatible
 set grepprg=grep\ -nH\ $*
 set ts=4
@@ -31,17 +30,6 @@ autocmd GUIEnter * set visualbell t_vb=
 set mouse=a
 set expandtab
 set tw=0  " Set to 0 for softwrap, and for hardwrap set to 72 because standard editor width is 80 and I like having line numbers on the left side, so this way gqip command will not create strange soft wrap on top of hard wrap.
-
-"""""""""""""""""""""""""""""""
-" YouCompleteMe Settings
-"""""""""""""""""""""""""""""""
-
-let g:ycm_collect_identifiers_from_tags_files = 1 " Let YCM read tags from Ctags file
-let g:ycm_use_ultisnips_completer = 1 " Default 1, just ensure
-let g:ycm_seed_identifiers_with_syntax = 1 " Completion for programming language's keyword
-let g:ycm_complete_in_comments = 1 " Completion in comments
-let g:ycm_complete_in_strings = 1 " Completion in string
-
 
 
 """""""""""""""""""""""""""""""
@@ -97,7 +85,7 @@ vmap <C-C> "+y
 vmap <C-V> "+p
 vmap <C-M-V> S]%a(<ESC>"+pa)<ESC>
 
-let g:NERDTreeDirArrows=0
+let g:NERDTreeDirArrows=1
 "autocmd StdinReadPre * let s:std_in=1
 "autocmd VimEnter * if argc() == 0 && !exists("s:std_in") | NERDTree | endif
 
