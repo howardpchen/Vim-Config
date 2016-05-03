@@ -4,7 +4,6 @@ autocmd FileType python set sw=4
 autocmd FileType python set ts=4
 autocmd FileType python set sts=4
 
-
 set fileformats=unix,mac,dos
 set directory=.,$TEMP
 set encoding=utf-8
@@ -31,6 +30,13 @@ set mouse=a
 set expandtab
 set tw=0  " Set to 0 for softwrap, and for hardwrap set to 72 because standard editor width is 80 and I like having line numbers on the left side, so this way gqip command will not create strange soft wrap on top of hard wrap.
 
+"""""""""""""""""""""""""""""""
+" Ultisnip Setups
+"""""""""""""""""""""""""""""""
+
+let g:UltiSnipsExpandTrigger="<tab>"
+let g:UltiSnipsJumpForwardTrigger="<c-b>"
+let g:UltiSnipsJumpBackwardTrigger="<c-x>"
 
 """""""""""""""""""""""""""""""
 " Syntastic Setups
@@ -186,7 +192,7 @@ endfunction
 "=========================================================
 
 execute pathogen#infect()
-source $VIMRUNTIME/mswin.vim
-behave mswin
+"source $VIMRUNTIME/mswin.vim
+"behave mswin
 
 colorscheme wombat256i
