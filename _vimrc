@@ -167,7 +167,7 @@ endfunction
 "=========================================================
 
 execute pathogen#infect()
-"source $VIMRUNTIME/mswin.vim
-"behave mswin
+source $VIMRUNTIME/mswin.vim
+behave mswin
 
 colorscheme wombat256i
