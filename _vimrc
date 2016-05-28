@@ -33,7 +33,6 @@ set tw=0  " Set to 0 for softwrap, and for hardwrap set to 72 because standard e
 """""""""""""""""""""""""""""""
 " Ultisnip Setups
 """""""""""""""""""""""""""""""
-
 " 5/3/2016 - Python 2.7.10 works well for Windows but not 2.7.11
 
 let g:UltiSnipsExpandTrigger="<tab>"
@@ -43,6 +42,7 @@ let g:UltiSnipsJumpBackwardTrigger="<c-x>"
 """""""""""""""""""""""""""""""
 " Syntastic Setups
 """""""""""""""""""""""""""""""
+set statusline+=%{fugitive#statusline()}
 set statusline+=%#warningmsg#
 set statusline+=%{SyntasticStatuslineFlag()}
 set statusline+=%*
