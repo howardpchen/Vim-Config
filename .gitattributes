@@ -6,6 +6,7 @@
 *.css    text
 *.js     text
 *.sql    text
+*.vim    text
 
 *.csproj text merge=union
 *.sln    text merge=union eol=crlf
