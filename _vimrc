@@ -87,7 +87,7 @@ nnoremap <Leader>q <C-V>
 "Hotkey for languages
 """"""""""""""""""""""""""""""
 nmap <Leader>S    :set filetype=scala<CR>
-nmap <Leader>a    :set filetype=lua<CR>
+nmap <Leader>p    :set filetype=python<CR>
 
 nmap <C-A> ggVG
 nmap <C-C> "+y
