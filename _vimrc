@@ -10,7 +10,6 @@ set encoding=utf-8
 set background=dark  " will be overwritten by gvimrc
 set t_Co=256
 
-"set regexpengine=1
 syntax enable
 set nocompatible
 set grepprg=grep\ -nH\ $*
