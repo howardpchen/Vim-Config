@@ -166,6 +166,7 @@ function! LargeFile()
 endfunction
 
 "=========================================================
+
 execute pathogen#infect()
 source $VIMRUNTIME/mswin.vim
 behave mswin
