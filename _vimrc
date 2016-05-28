@@ -60,7 +60,7 @@ let g:indentLine_first_char = '│'
 let g:indentLine_showFirstIndentLevel = 1
 set wrap linebreak nolist
 
-map <ESC><ESC> :w<CR>
+map <ESC> :w<CR>
 map <C-J>      gj
 map <C-K>      gk
 imap <C-F>     <Space>{<CR><C-O>O
