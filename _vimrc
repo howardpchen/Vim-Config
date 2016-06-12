@@ -51,11 +51,11 @@ let g:syntastic_auto_loc_list = 1
 let g:syntastic_check_on_open = 1
 let g:syntastic_check_on_wq = 0
 
-let g:user_emmet_leader_key='<C-X>'
+let g:user_emmet_leader_key='<C-C>'
 
 exec "set listchars=tab:\uBB\uBB,trail:\uB7,nbsp:~"
-let g:indentLine_char = '│'
-let g:indentLine_first_char = '│'
+"let g:indentLine_char = '│'
+"let g:indentLine_first_char = '│'
 let g:indentLine_showFirstIndentLevel = 1
 set wrap linebreak nolist
 
