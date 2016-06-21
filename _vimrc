@@ -67,6 +67,9 @@ imap <C-F>     <Space>{<CR><C-O>O
 " automatically separating HTML tags into different lines
 "nmap g=        ^/><<CR>a<CR><ESC>
 "imap g=        <ESC>^/><<CR>a<CR>
+nmap g=         vityvatp
+"make a-name target
+nmap gt         yiwysiw<a name="">f"di"PW
 
 imap <C-L>     <RIGHT>
 imap <C-J>     <ESC>gja
