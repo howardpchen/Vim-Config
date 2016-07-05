@@ -76,8 +76,8 @@ imap <C-J>     <ESC>gja
 imap <C-K>     <ESC>gka
 imap <C-H>     <LEFT>
 imap <C-E>     <ESC>ldwi
-vmap j gj
-vmap k gk
+"vmap j gj
+"vmap k gk
 
 nmap <C-M-O>      :MRU<CR>
 nmap <C-O>        :NERDTree<CR>
