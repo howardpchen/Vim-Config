@@ -1,14 +1,26 @@
 filetype plugin on
 filetype indent on
-autocmd FileType python set sw=4
-autocmd FileType python set ts=4
-autocmd FileType python set sts=4
+
+au BufNewFile,BufRead *.py
+    \ set tabstop=4 |
+    \ set softtabstop=4 |
+    \ set shiftwidth=4 |
+    \ set textwidth=79 |
+    \ set expandtab |
+    \ set autoindent |
+    \ set fileformat=unix |
+
+au BufNewFile,BufRead *.js,*.html,*.css
+    \ set tabstop=2 |
+    \ set softtabstop=2 |
+    \ set shiftwidth=2 |
 
 set fileformats=unix,mac,dos
 set directory=.,$TEMP
 set encoding=utf-8
 set background=dark  " will be overwritten by gvimrc
 set t_Co=256
+set clipboard=unnamed
 
 syntax enable
 set nocompatible
