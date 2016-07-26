@@ -9,6 +9,9 @@ au BufNewFile,BufRead *.py
     \ set expandtab |
     \ set autoindent |
     \ set fileformat=unix |
+    \ set foldmethod=indent |
+    \ set foldignore= |
+    \ nmap <SPACE>  za
 
 au BufNewFile,BufRead *.js,*.html,*.css
     \ set tabstop=2 |
