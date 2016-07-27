@@ -74,7 +74,7 @@ exec "set listchars=tab:\uBB\uBB,trail:\uB7,nbsp:~"
 let g:indentLine_showFirstIndentLevel = 1
 set wrap linebreak nolist
 
-map <ESC> :w<CR>
+map <ESC><ESC> :w<CR>
 map <C-J>      gj
 map <C-K>      gk
 imap <C-F>     <Space>{<CR><C-O>O
