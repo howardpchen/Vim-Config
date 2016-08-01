@@ -11,7 +11,8 @@ au BufNewFile,BufRead *.py
     \ set fileformat=unix |
     \ set foldmethod=indent |
     \ set foldignore= |
-    \ nmap <SPACE>  za
+    \ set nofoldenable |
+    \ nmap <SPACE>  za |
 
 au BufNewFile,BufRead *.js,*.html,*.css
     \ set tabstop=2 |
@@ -98,7 +99,6 @@ nmap <C-M-O>      :MRU<CR>
 nmap <C-O>        :NERDTree<CR>
 nmap <Leader>s    :source $MYVIMRC<CR>
 nmap <Leader>v    :e! $MYVIMRC<CR>
-nmap <SPACE> zz
 nnoremap <Leader>q <C-V>
 
 """"""""""""""""""""""""""""""
