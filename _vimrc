@@ -54,18 +54,20 @@ let g:UltiSnipsExpandTrigger="<tab>"
 let g:UltiSnipsJumpForwardTrigger="<tab>"
 let g:UltiSnipsJumpBackwardTrigger="<c-x>"
 
+let g:pymode_python = 'python3'
+
 """""""""""""""""""""""""""""""
 " Syntastic Setups
 """""""""""""""""""""""""""""""
-set statusline+=%{fugitive#statusline()}
-set statusline+=%#warningmsg#
-set statusline+=%{SyntasticStatuslineFlag()}
-set statusline+=%*
+"set statusline+=%{fugitive#statusline()}
+"set statusline+=%#warningmsg#
+"set statusline+=%{SyntasticStatuslineFlag()}
+"set statusline+=%*
 
 "let g:syntastic_always_populate_loc_list = 1
 "let g:syntastic_auto_loc_list = 1
-let g:syntastic_check_on_open = 1
-let g:syntastic_check_on_wq = 0
+"let g:syntastic_check_on_open = 0
+"let g:syntastic_check_on_wq = 0
 
 let g:user_emmet_leader_key='<C-C>'
 
@@ -79,6 +81,7 @@ map <ESC><ESC> :w<CR>
 map <C-J>      gj
 map <C-K>      gk
 imap <C-F>     <Space>{<CR><C-O>O
+inoremap jk <esc>
 
 " automatically separating HTML tags into different lines
 "nmap g=        ^/><<CR>a<CR><ESC>
