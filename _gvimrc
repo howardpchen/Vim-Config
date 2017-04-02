@@ -21,3 +21,5 @@ endif
 
 set background=dark
 "colorscheme wombat256
+
+highlight ColorColumn ctermbg=235 guibg=#1c1d17

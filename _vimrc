@@ -12,7 +12,6 @@ au BufNewFile,BufRead *.py
     \ set foldmethod=indent |
     \ set foldignore= |
     \ set nofoldenable |
-    \ nmap <SPACE>  za |
 
 au BufNewFile,BufRead *.js,*.html,*.css
     \ set tabstop=2 |
@@ -54,7 +53,8 @@ let g:UltiSnipsExpandTrigger="<tab>"
 let g:UltiSnipsJumpForwardTrigger="<tab>"
 let g:UltiSnipsJumpBackwardTrigger="<c-x>"
 
-let g:pymode_python = 'python3'
+"let g:pymode_python = 'python3'
+let g:pymode_options_colorcolumn = 0
 
 """""""""""""""""""""""""""""""
 " Syntastic Setups
@@ -185,11 +185,10 @@ function! LargeFile()
 endfunction
 
 "=========================================================
+colorscheme wombat256i
+execute "set colorcolumn=" . join(range(81,335), ',')
+highlight ColorColumn ctermbg=235 guibg=#1c1d17
 
 execute pathogen#infect()
 source $VIMRUNTIME/mswin.vim
 behave mswin
-
-colorscheme wombat256i
-highlight ColorColumn ctermbg=235 guibg=#1c1d17
-execute "set colorcolumn=" . join(range(81,335), ',')
