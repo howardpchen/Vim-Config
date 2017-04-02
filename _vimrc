@@ -107,7 +107,6 @@ nnoremap <Leader>q <C-V>
 """"""""""""""""""""""""""""""
 "Hotkey for languages
 """"""""""""""""""""""""""""""
-nmap <Leader>S    :set filetype=scala<CR>
 nmap <Leader>p    :set filetype=python<CR>
 
 nmap <C-A> ggVG
@@ -192,3 +191,5 @@ source $VIMRUNTIME/mswin.vim
 behave mswin
 
 colorscheme wombat256i
+highlight ColorColumn ctermbg=235 guibg=#1c1d17
+execute "set colorcolumn=" . join(range(81,335), ',')
