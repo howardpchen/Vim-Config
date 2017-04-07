@@ -1,3 +1,4 @@
+colorscheme wombat256i
 filetype plugin on
 filetype indent on
 
@@ -5,13 +6,17 @@ au BufNewFile,BufRead *.py
     \ set tabstop=4 |
     \ set softtabstop=4 |
     \ set shiftwidth=4 |
-    \ set textwidth=79 |
+    \ set textwidth=80 |
     \ set expandtab |
     \ set autoindent |
     \ set fileformat=unix |
     \ set foldmethod=indent |
     \ set foldignore= |
     \ set nofoldenable |
+    \ noremap <SPACE>  za |
+    \ noremap <S-SPACE>  zA |
+
+au BufNewFile,BufRead *.kv set filetype=yaml
 
 au BufNewFile,BufRead *.js,*.html,*.css
     \ set tabstop=2 |
@@ -42,7 +47,10 @@ set noerrorbells visualbell t_vb=
 autocmd GUIEnter * set visualbell t_vb=
 set mouse=a
 set expandtab
-set tw=0  " Set to 0 for softwrap, and for hardwrap set to 72 because standard editor width is 80 and I like having line numbers on the left side, so this way gqip command will not create strange soft wrap on top of hard wrap.
+" Set to 0 for softwrap, and for hardwrap set to 72 because standard editor
+" width is 80 and I like having line numbers on the left side, so this way
+" gqip command will not create strange soft wrap on top of hard wrap.
+set tw=0  
 
 """""""""""""""""""""""""""""""
 " Ultisnip Setups
@@ -53,21 +61,20 @@ let g:UltiSnipsExpandTrigger="<tab>"
 let g:UltiSnipsJumpForwardTrigger="<tab>"
 let g:UltiSnipsJumpBackwardTrigger="<c-x>"
 
-"let g:pymode_python = 'python3'
-let g:pymode_options_colorcolumn = 0
+let g:pymode_python = 'python3'
 
 """""""""""""""""""""""""""""""
 " Syntastic Setups
 """""""""""""""""""""""""""""""
-"set statusline+=%{fugitive#statusline()}
-"set statusline+=%#warningmsg#
-"set statusline+=%{SyntasticStatuslineFlag()}
-"set statusline+=%*
+set statusline+=%{fugitive#statusline()}
+set statusline+=%#warningmsg#
+set statusline+=%{SyntasticStatuslineFlag()}
+set statusline+=%*
 
 "let g:syntastic_always_populate_loc_list = 1
 "let g:syntastic_auto_loc_list = 1
-"let g:syntastic_check_on_open = 1
-"let g:syntastic_check_on_wq = 0
+let g:syntastic_check_on_open = 0
+let g:syntastic_check_on_wq = 0
 
 let g:user_emmet_leader_key='<C-C>'
 
@@ -107,6 +114,7 @@ nnoremap <Leader>q <C-V>
 """"""""""""""""""""""""""""""
 "Hotkey for languages
 """"""""""""""""""""""""""""""
+nmap <Leader>S    :set filetype=scala<CR>
 nmap <Leader>p    :set filetype=python<CR>
 
 nmap <C-A> ggVG
@@ -185,10 +193,10 @@ function! LargeFile()
 endfunction
 
 "=========================================================
-colorscheme wombat256i
-execute "set colorcolumn=" . join(range(81,335), ',')
-highlight ColorColumn ctermbg=235 guibg=#1c1d17
 
 execute pathogen#infect()
 source $VIMRUNTIME/mswin.vim
 behave mswin
+
+highlight ColorColumn ctermbg=8 guibg=#303036
+let &colorcolumn=join(range(81,999),",")
