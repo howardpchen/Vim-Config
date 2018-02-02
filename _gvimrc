@@ -14,7 +14,7 @@ if has("gui_running")
     elseif has("gui_macvim")
         set guifont=Menlo\ Regular:h13
     elseif has("gui_win32")
-        set guifont=Inconsolata-g\ for\ Powerline:h10:cANSI
+        set guifont=Consolas:h11:cANSI
         map <C-CR> <Esc>:call libcallnr("gvimfullscreen.dll", "ToggleFullScreen", 0)<CR>
     endif
 endif
