@@ -52,16 +52,18 @@ set expandtab
 " gqip command will not create strange soft wrap on top of hard wrap.
 set tw=0  
 
+let g:airline_powerline_fonts = 1
+
 """""""""""""""""""""""""""""""
 " Ultisnip Setups
 """""""""""""""""""""""""""""""
 " 5/3/2016 - Python 2.7.10 works well for Windows but not 2.7.11
 
-let g:UltiSnipsExpandTrigger="<tab>"
-let g:UltiSnipsJumpForwardTrigger="<tab>"
-let g:UltiSnipsJumpBackwardTrigger="<c-x>"
+"let g:UltiSnipsExpandTrigger="<tab>"
+"let g:UltiSnipsJumpForwardTrigger="<tab>"
+"let g:UltiSnipsJumpBackwardTrigger="<c-x>"
 
-let g:pymode_python = 'python3'
+"let g:pymode_python = 'python3'
 
 """""""""""""""""""""""""""""""
 " Syntastic Setups
