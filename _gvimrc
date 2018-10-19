@@ -9,7 +9,7 @@ set guioptions-=r  "remove right-hand scroll bar
 set guioptions-=L  "remove left-hand scroll bar
 
 if has("gui_running")
-    if has("gui_gtk2")
+    if has("gui_gtk2") || has("gui_gtk3")
         set guifont=Powerline\ Consolas\ 11
     elseif has("gui_macvim")
         set guifont=Menlo\ Regular:h13
