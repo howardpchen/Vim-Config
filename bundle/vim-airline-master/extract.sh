@@ -1,1 +1,1 @@
-mkdir ~/.fonts && unzip consolas-font-for-powerline.zip -d ~/.fonts
+mkdir ~/.fonts & unzip consolas-font-for-powerline.zip -d ~/.fonts
