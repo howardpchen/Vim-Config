@@ -28,7 +28,8 @@ set directory=.,$TEMP
 set encoding=utf-8
 set background=dark  " will be overwritten by gvimrc
 set t_Co=256
-set clipboard=exclude:.*
+" set clipboard=exclude:.*
+set clipboard+=unnamedplus
 
 syntax enable
 set nocompatible
